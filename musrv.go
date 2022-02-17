@@ -4,10 +4,29 @@ import (
     "fmt"
     "log"
     "net/http"
+    "os/exec"
 )
 
-func searchForSong(s string){
+func enqueueSong(s string) string{
+    cmd := exec.Command("youtube-dl", s, "--get-filename")
+    var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		log.Warn(err)
+	}
+    return ""
+    cmd = exec.Command("umpv", "add",  out.String());
+    cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		log.Warn(err)
+	}
+    return out.String()
+}
 
+func searchForSong(s string){
+    
 }
 
 func handlePost(w *http.ResponseWriter, r *http.Request){
