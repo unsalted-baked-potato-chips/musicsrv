@@ -11,12 +11,16 @@ import (
     "html/template"
     "encoding/json"
 )
-
+type YTID struct {
+    Kind string `json:"kind"`
+    VideoID string `json:"videoId"`
+}
 type YTSnippet struct {
     Title string `json:"title"`
 }
 type YTResult struct {
     Snippet YTSnippet `json:"snippet"`
+    ID YTID `json:"id"`
 }
 type YTResponse struct {
     Results []YTResult `json:"items"`
@@ -70,6 +74,7 @@ func searchYT(s string, w *http.ResponseWriter){
     var ytr YTResponse
     err = json.Unmarshal(body, &ytr)
     if err != nil {
+        fmt.Fprintf(*w, "%s", body)
         log.Fatal(err)
     }
 
@@ -77,7 +82,7 @@ func searchYT(s string, w *http.ResponseWriter){
     t.Execute(*w, ytr)
 }
 
-func handlePost(w *http.ResponseWriter, r *http.Request){
+func handlePlayerButtons(w *http.ResponseWriter, r *http.Request){
     if err := r.ParseForm(); err != nil {
         fmt.Fprintf(*w, "ParseForm() err: %v", err)
 		return
@@ -95,10 +100,6 @@ func handlePost(w *http.ResponseWriter, r *http.Request){
 }
 
 func requestHandler(w http.ResponseWriter, r *http.Request){
-    if r.URL.Path != "/" {
-        http.Error(w, "404 not found.", http.StatusNotFound)
-        return
-    }
 
     switch r.Method {
         case "GET":
@@ -109,7 +110,15 @@ func requestHandler(w http.ResponseWriter, r *http.Request){
             }
             searchYT(q, &w)
         case "POST":
-            handlePost(&w, r)
+            switch r.URL.Path{
+            case "/":
+                handlePlayerButtons(&w,r)
+            case "/enqueue/":
+               fmt.Fprintf(w, "%s", r.FormValue("vidURL"))
+            default:
+                http.Error(w, "404 Not Found.", http.StatusNotFound)
+                return
+            }
         default:
             http.Error(w, "Method is not supported.", http.StatusNotFound)
     }

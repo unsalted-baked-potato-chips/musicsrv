@@ -1,11 +1,11 @@
 <html>
 <body>
 <h1>Results</h1>
-<ul>
+<form action="/enqueue/" method="POST">
     {{range .Results}}
-    <li>{{.Snippet.Title}}</li>
+    <input type="submit" name="vidURL" value="www.youtube.com/watch/{{.ID.VideoID}}"/>
     {{end}}
-</ul>
+</form>
 
 </html>
 </body>
