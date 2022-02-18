@@ -29,18 +29,25 @@ type YTResponse struct {
 var ytkey string
 
 func enqueueSong(s string) string{
-    cmd := exec.Command("youtube-dl", s, "--get-filename")
+    cmd := exec.Command("youtube-dl","-x","--audio-format","m4a", s, "--get-filename")
     var out bytes.Buffer
-	cmd.Stdout = &out
+    cmd.Stdout = &out
 	err := cmd.Run()
+    fmt.Println(out.String())
 	if err != nil {
 		log.Println(err)
+        return ""
 	}
-    return ""
-    cmd = exec.Command("umpv", "add",  out.String());
-    cmd.Stdout = &out
+    fmt.Println("Downloading")
+    cmd = exec.Command("youtube-dl","-x","--audio-format","m4a", s)
 	err = cmd.Run()
-
+	if err != nil {
+		log.Println(err)
+        return ""
+	}
+    fmt.Println("Playing")
+    cmd = exec.Command("mpv",  out.String());
+	err = cmd.Run()
 
 	if err != nil {
 		log.Println(err)
@@ -114,7 +121,7 @@ func requestHandler(w http.ResponseWriter, r *http.Request){
             case "/":
                 handlePlayerButtons(&w,r)
             case "/enqueue/":
-               fmt.Fprintf(w, "%s", r.FormValue("vidURL"))
+                enqueueSong(r.FormValue("vidURL"))
             default:
                 http.Error(w, "404 Not Found.", http.StatusNotFound)
                 return
